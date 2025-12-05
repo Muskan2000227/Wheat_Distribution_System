@@ -4,57 +4,151 @@
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width,initial-scale=1" />
 <title>Admin — Wheat Distribution</title>
+
 <style>
-  body{margin:0;background:#f4f7fb;font-family:Arial, sans-serif;color:#333;}
-  .container{max-width:900px;margin:18px auto;padding:16px;}
-  .card{background:white;padding:20px;margin-top:20px;border-radius:10px;box-shadow:0 3px 12px rgba(0,0,0,0.08);}
-  .card h2{margin:0 0 10px;font-size:22px;}
-  .muted{color:#666;margin-bottom:16px;}
-  .btn{width:100%;padding:14px;font-size:16px;font-weight:bold;border-radius:10px;border:none;cursor:pointer;background:#ef4444;color:white;}
-  .btn:disabled{opacity:0.6;}
-  .toast{position:fixed;bottom:20px;right:20px;background:#333;color:white;padding:12px 14px;border-radius:8px;display:none;}
-  .navbar {width: 100%;background: #222;color: white;padding: 12px 16px;display:flex;align-items:center;justify-content:space-between;}
-  .navbar-title { font-size: 20px; font-weight: bold; }
-  .hamburger { font-size: 28px; cursor: pointer; user-select:none; }
-  .menu { display: none; flex-direction: column; background: #333; width: 100%; }
-  .menu a { color: white; padding: 12px; text-decoration: none; border-bottom: 1px solid #444; }
-  .menu a:hover { background: #444; }
-  @media(min-width:700px){
-    .menu{display:flex;flex-direction:row;background:transparent;}
-    .menu a{border-bottom:none;padding:0 12px;}
+  * {
+    box-sizing: border-box;
+  }
+
+  body {
+    margin: 0;
+    background: #f4f7fb;
+    font-family: Arial, sans-serif;
+    color: #333;
+  }
+
+  /* COMMON WRAPPER FOR NAVBAR + CONTENT */
+  .page-wrapper {
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 0 16px 16px;
+  }
+
+  /* NAVBAR + HAMBURGER */
+  .navbar {
+    margin-top:10px;
+    width: 100%;
+    background: #222;
+    color: white;
+    padding: 12px 16px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    border-radius: 0 0 8px 8px;
+  }
+
+  .navbar-title {
+    font-size: 20px;
+    font-weight: bold;
+  }
+
+  .hamburger {
+    font-size: 28px;
+    cursor: pointer;
+    user-select: none;
+  }
+
+  .menu {
+    display: none;          /* hidden by default */
+    flex-direction: column;
+    background: #333;
+    width: 100%;            /* same width as navbar/content */
+    border-radius: 0 0 8px 8px;
+    overflow: hidden;
+  }
+
+  .menu a {
+    color: white;
+    padding: 12px 16px;
+    text-decoration: none;
+    border-bottom: 1px solid #444;
+    font-size: 14px;
+  }
+
+  .menu a:hover {
+    background: #444;
+  }
+
+  /* CONTENT CONTAINER */
+  .container {
+    margin-top: 18px;
+  }
+
+  /* CARD + BUTTON */
+  .card {
+    background: white;
+    padding: 20px;
+    margin-top: 20px;
+    border-radius: 10px;
+    box-shadow: 0 3px 12px rgba(0,0,0,0.08);
+  }
+
+  .card h2 { margin: 0 0 10px; font-size: 22px; }
+  .muted { color: #666; margin-bottom: 16px; }
+
+  .btn {
+    width: 100%;
+    padding: 14px;
+    font-size: 16px;
+    font-weight: bold;
+    border-radius: 10px;
+    border: none;
+    cursor: pointer;
+    background: #ef4444;
+    color: white;
+  }
+
+  .btn:disabled { opacity: 0.6; }
+
+  /* Toast */
+  .toast {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    background: #333;
+    color: white;
+    padding: 12px 14px;
+    border-radius: 8px;
+    display: none;
+    font-size: 14px;
   }
 </style>
 </head>
+
 <body>
 
 <script>
-  // redirect to login if not logged in (make sure value in localStorage is string "true")
+  // redirect to login if not logged in
   if (localStorage.getItem("loggedIn") !== "true") {
     window.location.href = "login.html";
   }
 </script>
 
-<div class="container">
+<div class="page-wrapper">
+  <!-- NAVBAR + MENU -->
   <div class="navbar">
     <div class="navbar-title">Wheat Distribution</div>
-    <!-- give an id so JS can find it -->
-    <div id="hambtn" class="hamburger" aria-label="menu toggle">☰</div>
+    <div class="hamburger" onclick="toggleMenu()">☰</div>
   </div>
 
-  <div id="navMenu" class="menu" role="navigation" aria-hidden="true">
+  <div id="navMenu" class="menu">
     <a href="add.html">➕ Add Record</a>
-    <a href="edit.html">✏️ Edit Records</a>
-    <a href="delete.html">🗑️ Delete</a>
+    <a href="edit.html">✏ Edit Records</a>
+    <a href="delete.html">🗑 Delete</a>
     <a href="wheat.html">📋 View Members</a>
     <a href="admin.html">⚙ Admin</a>
   </div>
 
-  <div class="card">
-    <h2>Reset All Records</h2>
-    <p class="muted">This will set <b>status = Not Taken</b> for all families.</p>
+  <!-- MAIN CONTENT -->
+  <div class="container">
+    <!-- RESET CARD -->
+    <div class="card">
+      <h2>Reset All Records</h2>
+      <p class="muted">This will set <b>status = Not Taken</b> for all families.</p>
 
-    <button class="btn" id="resetBtn">RESET ALL STATUS</button>
-    <div id="msg" style="color:#b91c1c;margin-top:12px;font-size:14px;display:none"></div>
+      <button class="btn" id="resetBtn">RESET ALL STATUS</button>
+      <div id="msg" style="color:#b91c1c;margin-top:12px;font-size:14px;display:none"></div>
+    </div>
   </div>
 </div>
 
@@ -62,63 +156,52 @@
 
 <!-- Supabase -->
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js/dist/umd/supabase.min.js"></script>
+
 <script>
-  // defensive DOM selection so we don't crash
-  const hambtn = document.getElementById('hambtn');
-  const navMenu = document.getElementById('navMenu');
+function toggleMenu() {
+  const m = document.getElementById("navMenu");
+  m.style.display = (m.style.display === "flex") ? "none" : "flex";
+}
 
-  if (hambtn && navMenu) {
-    hambtn.addEventListener('click', (e) => {
-      const isOpen = navMenu.style.display === "flex" || getComputedStyle(navMenu).display === "flex";
-      navMenu.style.display = isOpen ? "none" : "flex";
-      navMenu.setAttribute('aria-hidden', isOpen ? 'true' : 'false');
-    });
+/* ---------------------------
+   SUPABASE CONFIG + RESET
+--------------------------- */
+const SUPABASE_URL = "https://csnmofxxrmvxzhdkgroc.supabase.co";
+const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNzbm1vZnh4cm12eHpoZGtncm9jIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjQ5MjA4NTgsImV4cCI6MjA4MDQ5Njg1OH0.NcMTpVUu7LgePDvkrUGo7eIF-j88DF4XNMBWRY20QPo";
 
-    // close menu when clicking outside (mobile)
-    document.addEventListener("click", e => {
-      if (!navMenu.contains(e.target) && !hambtn.contains(e.target)) {
-        navMenu.style.display = "none";
-        navMenu.setAttribute('aria-hidden','true');
-      }
-    });
+const db = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+const resetBtn = document.getElementById("resetBtn");
+const msg = document.getElementById("msg");
+const toast = document.getElementById("toast");
+
+async function resetAll() {
+  msg.style.display = "none";
+  resetBtn.disabled = true;
+  resetBtn.textContent = "Resetting…";
+
+  try {
+    const { error } = await db
+      .from('members')
+      .update({ status: 'no', updated_at: new Date().toISOString() })
+      .neq('status', 'no');
+
+    if (error) throw error;
+
+    toast.style.display = "block";
+    setTimeout(() => toast.style.display = "none", 1800);
+
+  } catch (err) {
+    msg.style.display = "block";
+    msg.textContent = "Reset failed: " + (err.message || err);
+  } finally {
+    resetBtn.disabled = false;
+    resetBtn.textContent = "RESET ALL STATUS";
   }
+}
 
-  /* Supabase Config - ensure this is allowed in your project's security model */
-  const SUPABASE_URL = "https://csnmofxxrmvxzhdkgroc.supabase.co";
-  const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNzbm1vZnh4cm12eHpoZGtncm9jIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjQ5MjA4NTgsImV4cCI6MjA4MDQ5Njg1OH0.NcMTpVUu7LgePDvkrUGo7eIF-j88DF4XNMBWRY20QPo";
-  const db = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-
-  const resetBtn = document.getElementById("resetBtn");
-  const msg = document.getElementById("msg");
-  const toast = document.getElementById("toast");
-
-  async function resetAll(){
-    if (!resetBtn) return;
-    msg.style.display = "none";
-    resetBtn.disabled = true;
-    resetBtn.textContent = "Resetting…";
-
-    try {
-      // update all rows where status != 'no' (change to the actual value you use in DB)
-      const { error } = await db
-        .from('members')
-        .update({ status: 'no', updated_at: new Date().toISOString() })
-        .neq('status', 'no');
-
-      if (error) throw error;
-
-      toast.style.display = "block";
-      setTimeout(()=> toast.style.display="none", 1800);
-    } catch (err) {
-      msg.style.display="block";
-      msg.textContent="Reset failed: " + (err.message || err);
-    } finally {
-      resetBtn.disabled = false;
-      resetBtn.textContent = "RESET ALL STATUS";
-    }
-  }
-
-  if (resetBtn) resetBtn.addEventListener('click', resetAll);
+resetBtn.addEventListener('click', resetAll);
 </script>
+
 </body>
 </html>
