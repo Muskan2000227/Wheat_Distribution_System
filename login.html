@@ -1,0 +1,96 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Secure Login</title>
+
+<style>
+  body {
+    margin:0;
+    background:#f2f5fb;
+    font-family:Arial, sans-serif;
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    height:100vh;
+  }
+
+  .box {
+    background:white;
+    padding:28px;
+    border-radius:12px;
+    width:90%;
+    max-width:350px;
+    box-shadow:0 4px 14px rgba(0,0,0,0.1);
+    text-align:center;
+  }
+
+  h2 { margin-top:0; color:#333; }
+
+  input {
+    width:100%;
+    padding:12px;
+    margin-top:14px;
+    font-size:18px;
+    text-align:center;
+    border:1px solid #ccc;
+    border-radius:8px;
+  }
+
+  button {
+    width:100%;
+    margin-top:16px;
+    padding:12px;
+    background:#2563eb;
+    color:white;
+    font-weight:bold;
+    border:none;
+    border-radius:8px;
+    cursor:pointer;
+    font-size:16px;
+  }
+
+  .error {
+    margin-top:12px;
+    color:#d11a1a;
+    font-size:14px;
+    display:none;
+  }
+</style>
+</head>
+
+<body>
+
+<div class="box">
+  <h2>Enter PIN</h2>
+  <input type="password" id="pin" placeholder="Enter 4-digit PIN">
+  <button onclick="checkPIN()">Login</button>
+
+  <div id="error" class="error">Incorrect PIN. Try again.</div>
+</div>
+
+<script>
+  // CHANGE YOUR PIN HERE ↓↓↓
+  const CORRECT_PIN = "2627";
+
+  // OPTIONAL: Auto-login for 24 hours
+  if (localStorage.getItem("loggedIn") === "true") {
+    window.location.href = "index.html";
+  }
+
+  function checkPIN() {
+    const entered = document.getElementById("pin").value.trim();
+    const errorBox = document.getElementById("error");
+
+    if (entered === CORRECT_PIN) {
+      localStorage.setItem("loggedIn", "true");
+      window.location.href = "wheat.html";
+    } else {
+      errorBox.style.display = "block";
+    }
+  }
+</script>
+
+</body>
+</html>

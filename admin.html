@@ -1,0 +1,180 @@
+<script>
+if (localStorage.getItem("loggedIn") !== "true") {
+  window.location.href = "login.html";
+}
+</script>
+
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Admin — Wheat Distribution</title>
+
+<style>
+  body{
+    margin:0;
+    background:#f4f7fb;
+    font-family:Arial, sans-serif;
+    color:#333;
+  }
+  .container{max-width:900px;margin:18px auto;padding:16px;}
+
+
+
+  /* CARD */
+  .card{
+    background:white;
+    padding:20px;
+    margin-top:20px;
+    border-radius:10px;
+    box-shadow:0 3px 12px rgba(0,0,0,0.08);
+  }
+  .card h2{margin:0 0 10px;font-size:22px;}
+  .muted{color:#666;margin-bottom:16px;}
+
+  /* BUTTON */
+  .btn{
+    width:100%;
+    padding:14px;
+    font-size:16px;
+    font-weight:bold;
+    border-radius:10px;
+    border:none;
+    cursor:pointer;
+    background:#ef4444;
+    color:white;
+  }
+  .btn:disabled{opacity:0.6;}
+
+  /* TOAST */
+  .toast{
+    position:fixed;bottom:20px;right:20px;
+    background:#333;color:white;
+    padding:12px 14px;border-radius:8px;
+    display:none;
+  }
+</style>
+</head>
+
+<body>
+<div class="container">
+
+<style>
+  .navbar {
+    width: 100%;
+    background: #222;
+    color: white;
+    padding: 12px 16px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .navbar-title { font-size: 20px; font-weight: bold; }
+  .hamburger { font-size: 28px; cursor: pointer; }
+
+  .menu {
+    display: none;
+    flex-direction: column;
+    background: #333;
+    width: 100%;
+  }
+
+  .menu a {
+    color: white;
+    padding: 12px;
+    text-decoration: none;
+    border-bottom: 1px solid #444;
+  }
+  .menu a:hover { background: #444; }
+</style>
+
+<div class="navbar">
+  <div class="navbar-title">Wheat Distribution</div>
+  <div class="hamburger" onclick="toggleMenu()">☰</div>
+</div>
+
+<div id="navMenu" class="menu">
+  <a href="add.html">➕ Add Record</a>
+  <a href="edit.html">✏️ Edit Records</a>
+  <a href="delete.html">🗑️ Delete</a>
+  <a href="wheat.html">📋 View Members</a>
+  <a href="admin.html">⚙ Admin</a>
+</div>
+
+<script>
+function toggleMenu() {
+  const m = document.getElementById("navMenu");
+  m.style.display = m.style.display === "flex" ? "none" : "flex";
+}
+</script>
+
+  <!-- CARD -->
+  <div class="card">
+    <h2>Reset All Records</h2>
+    <p class="muted">This will set <b>status = Not Taken</b> for all families.</p>
+
+    <button class="btn" id="resetBtn">RESET ALL STATUS</button>
+
+    <div id="msg" style="color:#b91c1c;margin-top:12px;font-size:14px;display:none"></div>
+  </div>
+</div>
+
+<!-- Toast -->
+<div id="toast" class="toast">Reset Done ✓</div>
+
+<!-- Supabase -->
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js/dist/umd/supabase.min.js"></script>
+
+<script>
+/* Supabase Config */
+const SUPABASE_URL = "https://csnmofxxrmvxzhdkgroc.supabase.co";
+const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNzbm1vZnh4cm12eHpoZGtncm9jIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjQ5MjA4NTgsImV4cCI6MjA4MDQ5Njg1OH0.NcMTpVUu7LgePDvkrUGo7eIF-j88DF4XNMBWRY20QPo";
+const db = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+/* Navbar */
+const hambtn = document.getElementById('hambtn');
+const navMenu = document.getElementById('navMenu');
+hambtn.onclick = ()=> navMenu.style.display = navMenu.style.display==="block" ? "none":"block";
+document.addEventListener("click", e=>{
+  if(!navMenu.contains(e.target) && !hambtn.contains(e.target)){
+    navMenu.style.display="none";
+  }
+});
+
+/* Reset logic */
+const resetBtn = document.getElementById("resetBtn");
+const msg = document.getElementById("msg");
+const toast = document.getElementById("toast");
+
+async function resetAll(){
+  msg.style.display = "none";
+  resetBtn.disabled = true;
+  resetBtn.textContent = "Resetting…";
+
+  const { error } = await db
+    .from('members')
+    .update({ status: 'no', updated_at: new Date().toISOString() })
+    .neq('status', 'no');
+
+  if(error){
+    msg.style.display="block";
+    msg.textContent="Reset failed: "+error.message;
+    resetBtn.disabled = false;
+    resetBtn.textContent="RESET ALL STATUS";
+    return;
+  }
+
+  toast.style.display = "block";
+  setTimeout(()=> toast.style.display="none", 1800);
+
+  resetBtn.disabled = false;
+  resetBtn.textContent="RESET ALL STATUS";
+}
+
+resetBtn.onclick = resetAll;
+</script>
+
+</body>
+</html>

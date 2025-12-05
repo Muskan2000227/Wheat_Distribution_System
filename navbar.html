@@ -1,0 +1,49 @@
+<style>
+  .navbar {
+    width: 100%;
+    background: #222;
+    color: white;
+    padding: 12px 16px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .navbar-title { font-size: 20px; font-weight: bold; }
+  .hamburger { font-size: 28px; cursor: pointer; }
+
+  .menu {
+    display: none;
+    flex-direction: column;
+    background: #333;
+    width: 100%;
+  }
+
+  .menu a {
+    color: white;
+    padding: 12px;
+    text-decoration: none;
+    border-bottom: 1px solid #444;
+  }
+  .menu a:hover { background: #444; }
+</style>
+
+<div class="navbar">
+  <div class="navbar-title">Wheat Distribution</div>
+  <div class="hamburger" onclick="toggleMenu()">☰</div>
+</div>
+
+<div id="navMenu" class="menu">
+  <a href="index.html">🏠 Home</a>
+  <a href="add.html">➕ Add Record</a>
+  <a href="edit.html">✏️ Edit Records</a>
+  <a href="delete.html">🗑️ Delete</a>
+  <a href="view.html">📋 View Members</a>
+</div>
+
+<script>
+function toggleMenu() {
+  const m = document.getElementById("navMenu");
+  m.style.display = m.style.display === "flex" ? "none" : "flex";
+}
+</script>

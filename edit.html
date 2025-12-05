@@ -1,0 +1,189 @@
+<script>
+if (localStorage.getItem("loggedIn") !== "true") {
+  window.location.href = "login.html";
+}
+</script>
+
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8"/><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Edit Member</title>
+<style>body{font-family:Arial;padding:12px;max-width:900px;margin:auto}input,select,button{padding:8px;border:1px solid #ccc;border-radius:6px} .row{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:8px} table{width:100%;border-collapse:collapse}td,th{padding:6px;border-bottom:1px solid #eee}</style>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js/dist/umd/supabase.min.js"></script>
+</head>
+<body>
+
+<style>
+  .navbar {
+    width: 100%;
+    background: #222;
+    color: white;
+    padding: 12px 16px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .navbar-title { font-size: 20px; font-weight: bold; }
+  .hamburger { font-size: 28px; cursor: pointer; }
+
+  .menu {
+    display: none;
+    flex-direction: column;
+    background: #333;
+    width: 100%;
+  }
+
+  .menu a {
+    color: white;
+    padding: 12px;
+    text-decoration: none;
+    border-bottom: 1px solid #444;
+  }
+  .menu a:hover { background: #444; }
+</style>
+
+<div class="navbar">
+  <div class="navbar-title">Wheat Distribution</div>
+  <div class="hamburger" onclick="toggleMenu()">☰</div>
+</div>
+
+<div id="navMenu" class="menu">
+  <a href="add.html">➕ Add Record</a>
+  <a href="edit.html">✏️ Edit Records</a>
+  <a href="delete.html">🗑️ Delete</a>
+  <a href="wheat.html">📋 View Members</a>
+  <a href="admin.html">⚙ Admin</a>
+</div>
+
+<script>
+function toggleMenu() {
+  const m = document.getElementById("navMenu");
+  m.style.display = m.style.display === "flex" ? "none" : "flex";
+}
+</script>
+
+
+<h2>Edit / Update Member</h2>
+
+<div class="row">
+  <input id="q" placeholder="Search by ration card (exact or partial) or name" style="flex:1" />
+  <button id="search">Search</button>
+  <button id="reload">Show all</button>
+</div>
+
+<table id="results"><thead><tr><th>Name</th><th>RC</th><th>Phone</th><th>Members</th><th>Status</th><th>Action</th></tr></thead><tbody><tr><td colspan="6">No results</td></tr></tbody></table>
+
+<hr>
+
+<h3>Edit selected</h3>
+<div class="row">
+  <input id="eid" placeholder="id (auto)" readonly style="width:220px" />
+  <input id="ename" placeholder="Name" style="flex:1" />
+  <input id="emembers" type="number" min="0" placeholder="Members" style="width:120px" />
+  <input id="ephone" placeholder="Phone" style="width:150px" />
+  <input id="erc" placeholder="Ration card number" style="width:200px" />
+  <select id="estatus"><option value="no">Not taken</option><option value="ok">Taken</option></select>
+</div>
+<div class="row">
+  <button id="save">Save changes</button>
+  <button id="clear">Clear</button>
+</div>
+
+<div id="msg" style="color:crimson"></div>
+
+<script>
+/* ---------- REPLACE THESE VALUES ---------- */
+const SUPABASE_URL = "https://csnmofxxrmvxzhdkgroc.supabase.co";
+const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNzbm1vZnh4cm12eHpoZGtncm9jIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjQ5MjA4NTgsImV4cCI6MjA4MDQ5Njg1OH0.NcMTpVUu7LgePDvkrUGo7eIF-j88DF4XNMBWRY20QPo";
+/* ------------------------------------------ */
+if(!SUPABASE_URL||!SUPABASE_ANON_KEY){ document.getElementById('msg').textContent='Configure keys'; throw 0; }
+const db = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+const resultsT = document.querySelector('#results tbody');
+
+function show(msg,ok=true){ const el=document.getElementById('msg'); el.style.color = ok?'green':'crimson'; el.textContent=msg; }
+
+async function performSearch(q) {
+  resultsT.innerHTML = '<tr><td colspan="6">Searching...</td></tr>';
+  try {
+    if(!q) {
+      const { data, error } = await db.from('members').select('*').order('name',{ascending:true});
+      if(error) throw error;
+      renderResults(data||[]);
+      return;
+    }
+    const esc = q.replace(/%/g,'\\%').replace(/'/g,"''");
+    const { data, error } = await db.from('members').select('*')
+      .or(`ration_card_number.ilike.%${esc}%,name.ilike.%${esc}%`).order('name',{ascending:true});
+    if(error) throw error;
+    renderResults(data||[]);
+  } catch(err) {
+    show('Search error: '+(err.message||err), false);
+    console.error(err);
+    resultsT.innerHTML = '<tr><td colspan="6">Error</td></tr>';
+  }
+}
+
+function renderResults(rows) {
+  if(!rows.length) { resultsT.innerHTML = '<tr><td colspan="6">No rows</td></tr>'; return; }
+  resultsT.innerHTML = '';
+  rows.forEach(r => {
+    const tr = document.createElement('tr');
+    tr.innerHTML = `<td>${escape(r.name)}</td><td>${escape(r.ration_card_number)}</td><td>${escape(r.phone||'')}</td><td>${r.total_members||0}</td><td>${r.status}</td>
+      <td><button data-id="${r.id}" class="editBtn">Edit</button></td>`;
+    resultsT.appendChild(tr);
+  });
+}
+
+function escape(s=''){ return String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+
+document.getElementById('search').addEventListener('click', ()=>performSearch(document.getElementById('q').value.trim()));
+document.getElementById('reload').addEventListener('click', ()=>performSearch(''));
+
+// delegate edit click
+resultsT.addEventListener('click', (e)=>{
+  const btn = e.target.closest('button.editBtn');
+  if(!btn) return;
+  const id = btn.dataset.id;
+  loadForEdit(id);
+});
+
+async function loadForEdit(id) {
+  try {
+    const { data, error } = await db.from('members').select('*').eq('id', id).single();
+    if(error) throw error;
+    document.getElementById('eid').value = data.id;
+    document.getElementById('ename').value = data.name || '';
+    document.getElementById('emembers').value = data.total_members || 0;
+    document.getElementById('ephone').value = data.phone || '';
+    document.getElementById('erc').value = data.ration_card_number || '';
+    document.getElementById('estatus').value = data.status || 'no';
+    show('Loaded for edit');
+  } catch(err) { show('Load failed: '+(err.message||err), false); console.error(err); }
+}
+
+document.getElementById('clear').addEventListener('click', ()=>{ ['eid','ename','emembers','ephone','erc','estatus'].forEach(id=>document.getElementById(id).value=''); show(''); });
+
+document.getElementById('save').addEventListener('click', async ()=>{
+  const id = document.getElementById('eid').value;
+  if(!id) return show('Select a row to edit', false);
+  const payload = {
+    name: (document.getElementById('ename').value||'').trim(),
+    total_members: parseInt(document.getElementById('emembers').value||'0',10),
+    phone: (document.getElementById('ephone').value||'').trim()||null,
+    ration_card_number: (document.getElementById('erc').value||'').trim(),
+    status: document.getElementById('estatus').value,
+    updated_by: 'FieldUser',
+    updated_at: new Date().toISOString()
+  };
+  try {
+    const { data, error } = await db.from('members').update(payload).eq('id', id).select();
+    if(error) throw error;
+    show('Updated successfully');
+    performSearch(''); // refresh list
+  } catch(err) { show('Update failed: '+(err.message||err), false); console.error(err); }
+});
+</script>
+</body>
+</html>

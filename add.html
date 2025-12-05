@@ -1,0 +1,130 @@
+<script>
+if (localStorage.getItem("loggedIn") !== "true") {
+  window.location.href = "login.html";
+}
+</script>
+
+
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Add Member</title>
+<style>body{font-family:Arial;padding:12px;max-width:800px;margin:auto}input,select,button{padding:8px;border:1px solid #ccc;border-radius:6px} .row{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:8px}</style>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js/dist/umd/supabase.min.js"></script>
+</head>
+<body>
+
+    <style>
+  .navbar {
+    width: 100%;
+    background: #222;
+    color: white;
+    padding: 12px 16px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .navbar-title { font-size: 20px; font-weight: bold; }
+  .hamburger { font-size: 28px; cursor: pointer; }
+
+  .menu {
+    display: none;
+    flex-direction: column;
+    background: #333;
+    width: 100%;
+  }
+
+  .menu a {
+    color: white;
+    padding: 12px;
+    text-decoration: none;
+    border-bottom: 1px solid #444;
+  }
+  .menu a:hover { background: #444; }
+</style>
+
+<div class="navbar">
+  <div class="navbar-title">Wheat Distribution</div>
+  <div class="hamburger" onclick="toggleMenu()">☰</div>
+</div>
+
+<div id="navMenu" class="menu">
+  <a href="add.html">➕ Add Record</a>
+  <a href="edit.html">✏️ Edit Records</a>
+  <a href="delete.html">🗑️ Delete</a>
+  <a href="wheat.html">📋 View Members</a>
+  <a href="admin.html">⚙ Admin</a>
+</div>
+
+<script>
+function toggleMenu() {
+  const m = document.getElementById("navMenu");
+  m.style.display = m.style.display === "flex" ? "none" : "flex";
+}
+</script>
+    
+
+
+<h2>Add New Member</h2>
+
+<div class="row">
+  <input id="name" placeholder="Full name" style="flex:2" />
+  <input id="members" type="number" min="0" placeholder="Total members" style="width:120px" />
+  <input id="phone" placeholder="Phone" style="width:150px" />
+  <input id="rc" placeholder="Ration card number" style="width:200px" />
+  <select id="status"><option value="no">Not taken</option><option value="ok">Taken</option></select>
+</div>
+<div class="row">
+  <!-- <input id="notes" placeholder="Notes (optional)" style="flex:1" /> -->
+  <button id="add">Add</button>
+  <button id="clear">Clear</button>
+</div>
+
+<div id="msg" style="color:crimson"></div>
+
+<script>
+/* ---------- REPLACE THESE VALUES ---------- */
+const SUPABASE_URL = "https://csnmofxxrmvxzhdkgroc.supabase.co";
+const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNzbm1vZnh4cm12eHpoZGtncm9jIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjQ5MjA4NTgsImV4cCI6MjA4MDQ5Njg1OH0.NcMTpVUu7LgePDvkrUGo7eIF-j88DF4XNMBWRY20QPo";
+/* ------------------------------------------ */
+if(!SUPABASE_URL||!SUPABASE_ANON_KEY) { document.getElementById('msg').textContent='Configure keys in file.'; throw 0; }
+const db = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+function show(msg, ok=true){ const el=document.getElementById('msg'); el.style.color = ok ? 'green':'crimson'; el.textContent=msg; }
+
+document.getElementById('clear').addEventListener('click', ()=> {
+  ['name','members','phone','rc'].forEach(id=>document.getElementById(id).value='');
+  show('');
+});
+
+document.getElementById('add').addEventListener('click', async ()=>{
+  show('');
+  const name = (document.getElementById('name').value||'').trim();
+  const total_members = parseInt(document.getElementById('members').value||'0',10);
+  const phone = (document.getElementById('phone').value||'').trim();
+  const ration_card_number = (document.getElementById('rc').value||'').trim();
+  const status = document.getElementById('status').value;
+
+
+  if(!name) return show('Name required', false);
+  if(!ration_card_number) return show('Ration card number required', false);
+  if(Number.isNaN(total_members) || total_members<0) return show('Total members must be 0 or more', false);
+
+  const payload = { name, total_members, phone: phone||null, ration_card_number, status, updated_by:'FieldUser', updated_at: new Date().toISOString()};
+
+  document.getElementById('add').disabled = true;
+  document.getElementById('add').textContent = 'Adding...';
+
+  try {
+    const { data, error } = await db.from('members').insert([payload]).select();
+    if (error) { show('Insert failed: '+error.message, false); console.error(error); }
+    else { show('Added successfully'); ['name','members','phone','rc'].forEach(id=>document.getElementById(id).value=''); }
+  } catch (err) { show('Insert exception: '+err.message, false); console.error(err); }
+  finally { document.getElementById('add').disabled=false; document.getElementById('add').textContent='Add'; }
+});
+</script>
+</body>
+</html>
